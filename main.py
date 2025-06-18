@@ -24,7 +24,8 @@ agent = FunctionAgent(
 
 async def main():
     # Run the agent
-    response = await agent.run("What is 1234 * 4567?")
+    prompt = ""
+    response = await agent.run(prompt)
     print(str(response))
 
 
