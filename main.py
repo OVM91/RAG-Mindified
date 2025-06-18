@@ -1,34 +1,46 @@
 import asyncio
 from llama_index.core.agent.workflow import FunctionAgent
 from llama_index.llms.ollama import Ollama
+from llama_index.core.workflow import Context
 
 
-# Define a simple calculator tool
-def multiply(a: float, b: float) -> float:
-    """Useful for multiplying two numbers."""
-    return a * b
-
-
-# Create an agent workflow with our calculator tool
+# Create an agent
 agent = FunctionAgent(
-    tools=[multiply],
+    tools=[],
     llm=Ollama(
         model="llama3.2",
         request_timeout=360.0,
-        # Manually set the context window to limit memory usage
         context_window=8000,
     ),
-    system_prompt="You are a helpful assistant that can multiply two numbers.",
+    system_prompt="You are a helpful assistant",
 )
 
-
 async def main():
-    # Run the agent
-    prompt = ""
-    response = await agent.run(prompt)
-    print(str(response))
+    print("Chat with the agent! Type 'quit' or 'exit' to stop.")
+
+    ctx = Context(agent)
+    while True:
+        
+        prompt = input("\nPrompt: ").strip()
+        
+        
+        if prompt.lower() in ['quit', 'exit', 'q']:
+            print("Goodbye!")
+            break
+            
+        if not prompt:
+            continue
+            
+        try:
+            # Run the agent with user's prompt
+            response = await agent.run(prompt, ctx=ctx)
+            print(f"Agent: {str(response)}")
+            
+        except Exception as e:
+            print(f"Error: {e}")
+            print("Please try again.")
 
 
-# Run the agent
+
 if __name__ == "__main__":
     asyncio.run(main())
