@@ -1,4 +1,5 @@
 import asyncio
+import time
 from llama_index.core.agent.workflow import AgentWorkflow
 from llama_index.llms.ollama import Ollama
 from llama_index.core.workflow import Context
@@ -45,7 +46,14 @@ query_engine = index.as_query_engine(
 
 async def search_documents(query: str) -> str:
     """Useful for answering questions about the car company Aether Motors."""
+    print(f"\n Starting document search for: '{query}'")
+    
+    # Time the embedding + search process
+    start_time = time.time()
     response = await query_engine.aquery(query)
+    search_time = time.time() - start_time
+    
+    print(f"Document search took: {search_time:.2f} seconds")
     return str(response)
 
 
@@ -77,19 +85,29 @@ async def main():
             continue
             
         try:
-            # Start the workflow (Fixed: using 'agent' instead of 'workflow')
+            print(f"\n Starting agent processing...")
+            total_start = time.time()
+            
             handler = agent.run(user_msg=prompt)
             
             print("Agent: ", end="", flush=True)
             
+            # Time the LLM response generation
+            llm_start = time.time()
+            
             # Stream the response
-            async for event in handler.stream_events():
-                if hasattr(event, 'delta') and event.delta:
-                    print(event.delta, end="", flush=True)
+            #async for event in handler.stream_events():
+                #if hasattr(event, 'delta') and event.delta:
+                    #print(event.delta, end="", flush=True)
             
             # Get final result
             result = await handler
-            print("\n")
+            llm_time = time.time() - llm_start
+            total_time = time.time() - total_start
+            
+            print(f"\nLLM response took: {llm_time:.2f} seconds")
+            print(f"Total processing time: {total_time:.2f} seconds")
+            print(f"Response: {result.response.content}")
             
         except Exception as e:
             print(f"Error: {e}")
