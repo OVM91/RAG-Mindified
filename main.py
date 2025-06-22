@@ -1,8 +1,8 @@
 import asyncio
-from llama_index.core.agent.workflow import FunctionAgent, AgentWorkflow
+from llama_index.core.agent.workflow import AgentWorkflow
 from llama_index.llms.ollama import Ollama
 from llama_index.core.workflow import Context
-from llama_index.core import VectorStoreIndex, SimpleDirectoryReader, Settings
+from llama_index.core import VectorStoreIndex, SimpleDirectoryReader, Settings, StorageContext, load_index_from_storage
 from llama_index.embeddings.huggingface import HuggingFaceEmbedding
 import os
 
@@ -16,15 +16,30 @@ Settings.llm = Ollama(
     )
 
 
-# Create a RAG tool using LlamaIndex
-documents = SimpleDirectoryReader("src/data/").load_data()
-index = VectorStoreIndex.from_documents(
-    documents,
-    embed_model=Settings.embed_model
-)
+# Optimize: Load from storage if exists, otherwise create and persist
+if os.path.exists("storage"):
+    print("Loading existing index from storage...")
+    storage_context = StorageContext.from_defaults(persist_dir="storage")
+    index = load_index_from_storage(
+        storage_context,
+        embed_model=Settings.embed_model
+    )
+    print("Index loaded successfully!")
+else:
+    print("Creating new index from documents...")
+    documents = SimpleDirectoryReader("src/data/").load_data()
+    index = VectorStoreIndex.from_documents(
+        documents,
+        embed_model=Settings.embed_model
+    )
+    index.storage_context.persist("storage")
+    print("Index created and saved to storage!")
 
 query_engine = index.as_query_engine(
-    llm=Settings.llm)
+    llm=Settings.llm,
+    similarity_top_k=3,
+    streaming=True
+    )
 
 
 
@@ -34,27 +49,25 @@ async def search_documents(query: str) -> str:
     return str(response)
 
 
-# Create an agent
-agent = FunctionAgent(
-    tools=[search_documents],
+# Create an AgentWorkflow (supports streaming!)
+agent = AgentWorkflow.from_tools_or_functions(
+    [search_documents],
     llm=Ollama(
         model="llama3.2",
         request_timeout=360.0,
         context_window=8000
     ),
-    system_prompt="You are a helpful assistant that can search through documents to answer questions.",
+    system_prompt="You are a helpful assistant that can search through documents to answer questions about Aether Motors.",
+    timeout=120,
+    verbose=False
 )
 
 
 async def main():
     print("Chat with the agent! Type 'quit' or 'exit' to stop.")
-    ctx = Context(agent)
 
     while True:
-        prompt_embedding = []
         prompt = input("\nPrompt: ").strip()
-
-        prompt_embedding.append(prompt)
         
         if prompt.lower() in ['quit', 'exit', 'q']:
             print("Goodbye!")
@@ -64,9 +77,19 @@ async def main():
             continue
             
         try:
-            # Run the agent with user's prompt
-            response = await agent.run(prompt, ctx=ctx)
-            print(f"Agent: {str(response)}")
+            # Start the workflow (Fixed: using 'agent' instead of 'workflow')
+            handler = agent.run(user_msg=prompt)
+            
+            print("Agent: ", end="", flush=True)
+            
+            # Stream the response
+            async for event in handler.stream_events():
+                if hasattr(event, 'delta') and event.delta:
+                    print(event.delta, end="", flush=True)
+            
+            # Get final result
+            result = await handler
+            print("\n")
             
         except Exception as e:
             print(f"Error: {e}")
