@@ -69,10 +69,17 @@ def main():
         
     # In the next steps, we will add chunking and indexing here.
     print("\n--- Data Processing Complete ---")
+    
     # let's just inspect the first processed conversation
     if conversations:
         print("\n--- Test: first processed conversation ---")
-        print(json.dumps(conversations[0], indent=2))
+        print(len(conversations))
+        print(json.dumps(conversations[2], indent=2))
+
+    output_json_path = "src/data/oscar_transformed_data.json"
+    with open(output_json_path, 'w', encoding='utf-8') as f:
+        json.dump(conversations, f, indent=2, ensure_ascii=False)
+        
 
 
 
