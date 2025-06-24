@@ -3,10 +3,14 @@ import json
 #from chromadb.utils import embedding_functions
 
 
+ # --- Configuration (path)---
+json_file_path = "src/data/oscar_data.json"
+
+
+# --- Functions ---
 def load_json_data(file_path: str):
     """
-    Loads data from the JSON file and processes it into a list of conversations,
-    each with its full transcript and associated metadata.
+    Loads data from the JSON file.
     """
     print("Loading data...")
     try:
@@ -15,10 +19,12 @@ def load_json_data(file_path: str):
             return raw_data
 
     except FileNotFoundError:
-        raise(f"Error: The file at {file_path} was not found.")
+        # Raise a proper Exception object, not a string
+        raise Exception(f"Error: The file at {file_path} was not found.")
         
     except json.JSONDecodeError:
-        raise(f"Error: The file at {file_path} is not a valid JSON file.")
+        # Raise a proper Exception object, not a string
+        raise Exception(f"Error: The file at {file_path} is not a valid JSON file.")
 
 
 def parse_json_data(raw_json_data: str) -> json:
@@ -28,7 +34,7 @@ def parse_json_data(raw_json_data: str) -> json:
         # Combine messages into a single transcript
         transcript = ""
         for msg in conv.get("messages", []):
-            user_type = msg.get("user_type", "unknown")
+            user_type = msg.get("user_type", "unknown").lower()
             text = msg.get("text_raw", "")
             if text:
                 transcript += f"{user_type}: {text}\n"
@@ -51,13 +57,10 @@ def parse_json_data(raw_json_data: str) -> json:
 
     print(f"Successfully processed {len(processed_conversations)} conversations.")
     return processed_conversations
+    
 
-def main():
-    """Main function to run the data processing and indexing."""
-    
-    # --- Configuration ---
-    json_file_path = "src/data/oscar_data.json"
-    
+def main(file_path: str):
+    """Main function to run the data processing, indexing and dump the json."""
     
     # --- Processing ---
     raw_json_data = load_json_data(json_file_path)
@@ -80,8 +83,6 @@ def main():
     with open(output_json_path, 'w', encoding='utf-8') as f:
         json.dump(conversations, f, indent=2, ensure_ascii=False)
         
-
-
 
 if __name__ == "__main__":
     main() 
