@@ -1,4 +1,5 @@
 import json
+from ordered_set import OrderedSet
 #import chromadb
 #from chromadb.utils import embedding_functions
 
@@ -33,9 +34,22 @@ def parse_json_data(raw_json_data: str) -> json:
     for conv in raw_json_data:
         # Combine messages into a single transcript
         transcript = ""
+        seen_system_messages = OrderedSet()
+        wait_message_duplicates_count = 0
+        specific_wait_message = "We are currently busier than usual at the moment and are experiencing extended wait times."
+
         for msg in conv.get("messages", []):
             user_type = msg.get("user_type", "unknown").lower()
             text = msg.get("text_raw", "")
+
+            # Counting duplicate system messages in regards to 'specific_wait_message', metadata
+            if 'system' in user_type:
+                if text in seen_system_messages:
+                    if text == specific_wait_message:
+                        wait_message_duplicates_count += 1
+                    continue  # Skip duplicate system message
+                seen_system_messages.add(text)
+
             if text:
                 transcript += f"{user_type}: {text}\n"
 
@@ -51,7 +65,8 @@ def parse_json_data(raw_json_data: str) -> json:
                     "start_time": conv.get("start_time"),
                     "end_time": conv.get("end_time"),
                     "published": conv.get("published"),
-                    "translator": conv.get("translator")
+                    "translator": conv.get("translator"),
+                    "wait_message_duplicates": wait_message_duplicates_count
                 }
             })
 
@@ -77,12 +92,12 @@ def main(file_path: str):
     if conversations:
         print("\n--- Test: first processed conversation ---")
         print(len(conversations))
-        print(json.dumps(conversations[2], indent=2))
+        print(json.dumps(conversations[0], indent=2))
 
-    output_json_path = "src/data/oscar_transformed_data.json"
+    output_json_path = "src/data/oscar_transformed_datav2.json"
     with open(output_json_path, 'w', encoding='utf-8') as f:
         json.dump(conversations, f, indent=2, ensure_ascii=False)
         
 
 if __name__ == "__main__":
-    main() 
+    main(json_file_path) 
