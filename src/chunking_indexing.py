@@ -42,13 +42,15 @@ def chunking_data(json_file_path: str):
                 chunks_list = [] 
                 customer_response_count = 0
                 
-    if final_structured_chunks:
-        final_chunk_text = "\n".join(chunks_list)
-        final_structured_chunks.append({
-            "chunk_text": final_chunk_text,
-            "metadata": metadata
-        })
+        if chunks_list:
+            final_chunk_text = "\n".join(chunks_list)
+            final_structured_chunks.append({
+                "chunked_text": final_chunk_text,
+                "metadata": metadata
+            })
     
-    print(json.dumps(final_structured_chunks[2], indent=2))
+    if final_structured_chunks:
+        print(len(final_structured_chunks))
+        print(json.dumps(final_structured_chunks, indent=2))
 
 chunking_data(json_file_path)
