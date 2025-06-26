@@ -2,7 +2,7 @@ import json
 from data_processing import load_json_data
 
 # --- Configuration (path) ---
-json_file_path = "src/data/oscar_transformed_data.json"
+json_file_path = "src/data/transformed_oscar_data.json"
 
 
 # --- Functions ---
