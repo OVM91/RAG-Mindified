@@ -5,7 +5,7 @@ from ordered_set import OrderedSet
 
 
  # --- Configuration (path)---
-json_file_path = "src/data/oscar_data.json"
+json_file_path = "src/data/raw_oscar_data.json"
 
 
 # --- Functions ---
@@ -94,7 +94,7 @@ def main(file_path: str):
         print(len(conversations))
         print(json.dumps(conversations[0], indent=2))
 
-    output_json_path = "src/data/oscar_transformed_datav2.json"
+    output_json_path = "src/data/transformed_oscar_data.json"
     with open(output_json_path, 'w', encoding='utf-8') as f:
         json.dump(conversations, f, indent=2, ensure_ascii=False)
         
