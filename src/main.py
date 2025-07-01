@@ -6,7 +6,8 @@ from gemini_model import get_gemini_response
 
 # --- Configuration (path)---
 json_file_path = "src/data/llamaindex_embedding_data/transformed_oscar_data.json"
-output_path = "src/data/test.json"
+output_path = "src/data/test_data.json"
+failed_validation_output_path = "src/data/failed_conversations.json"
 
 
 # --- Functions ---
@@ -60,7 +61,7 @@ def prompt(transcript: str, metadata: dict) -> str:
 
         JSON Schema:
         {{
-            "conversation_id": "conversation_id"
+            "conversation_id": "conversation_id",
             "products": ["list of product names or numbers"],
             "store_location": "store address or location",
             "product_category": "category of the product",
@@ -81,13 +82,18 @@ def save_json_file(extracted_info: List[dict], output_path: str):
         print(f"Error writing to {output_path}: {e}")
 
 
-def format_conversation(json_file_path: str) -> List[dict]:
-    """Processes all conversations and extracts information from each."""
+def format_conversation(json_file_path: str) -> tuple[List[dict], List[dict]]:
+    """Processes all conversations and extracts information from each.
+    
+    Returns:
+        tuple: (successful_extractions, failed_extractions)
+    """
 
     transformed_json_data = load_json_data(json_file_path)
     all_extracted_info = []
+    failed_extractions = []
 
-    for message in transformed_json_data:
+    for i, message in enumerate(transformed_json_data):
         transcript = message.get("transcript")
         metadata = message.get("metadata")
 
@@ -102,19 +108,37 @@ def format_conversation(json_file_path: str) -> List[dict]:
             all_extracted_info.append(extracted_info.dict())
             print(f"Successfully processed conversation: {extracted_info.conversation_id}")
 
-        except (json.JSONDecodeError, TypeError):
-            print(f"Could not parse LLM response for a conversation. Raw response was: {response_text}")
+        except (json.JSONDecodeError, TypeError) as e:
+            error_info = {
+                "conversation_index": i,
+                "original_transcript": transcript,
+                "original_metadata": metadata,
+                "llm_response": response_text,
+                "error_type": "JSON_DECODE_ERROR",
+                "error_message": str(e)
+            }
+            failed_extractions.append(error_info)
+            print(f"Could not parse LLM response for conversation {i}. Raw response was: {response_text}")
             continue
         except Exception as e:
-            print(f"An unexpected error occurred for a conversation: {e}")
+            error_info = {
+                "conversation_index": i,
+                "original_transcript": transcript,
+                "original_metadata": metadata,
+                "llm_response": response_text if 'response_text' in locals() else "N/A",
+                "error_type": "VALIDATION_ERROR",
+                "error_message": str(e)
+            }
+            failed_extractions.append(error_info)
+            print(f"An unexpected error occurred for conversation {i}: {e}")
             continue
     
-    return all_extracted_info
+    return all_extracted_info, failed_extractions
 
 
 if __name__ == "__main__":
     # Process the conversations and extract information
-    extracted_data = format_conversation(json_file_path)
+    extracted_data, failed_data = format_conversation(json_file_path)
     
     # Save the extracted information to test.json
     if extracted_data:
@@ -122,3 +146,10 @@ if __name__ == "__main__":
         print(f"Extracted and saved information for {len(extracted_data)} conversations.")
     else:
         print("No data was extracted.")
+
+    # Save failed conversations to failed_conversations.json
+    if failed_data:
+        save_json_file(failed_data, failed_validation_output_path)
+        print(f"Saved {len(failed_data)} failed conversations to {failed_validation_output_path}")
+    else:
+        print("No failed conversations were found.")
