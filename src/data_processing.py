@@ -1,18 +1,14 @@
 import json
 from ordered_set import OrderedSet
-#import chromadb
-#from chromadb.utils import embedding_functions
 
-
- # --- Configuration (path)---
+# --- Configuration (path)---
 json_file_path = "src/data/raw_oscar_data.json"
 
 
 # --- Functions ---
 def load_json_data(file_path: str):
-    """
-    Loads data from the JSON file.
-    """
+    """Loads data from the JSON file."""
+
     print("Loading data...")
     try:
         with open(file_path, 'r', encoding='utf-8') as f:
@@ -32,7 +28,7 @@ def parse_json_data(raw_json_data: str) -> json:
 
     processed_conversations = []
     for conv in raw_json_data:
-        # Combine messages into a single transcript
+        # Combine messages into a single transcript and remove system msg duplicates
         transcript = ""
         seen_system_messages = OrderedSet()
         wait_message_duplicates_count = 0
