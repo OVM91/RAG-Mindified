@@ -34,7 +34,7 @@ class ConversationInfo(BaseModel):
     """Data model for extracted information from a conversation."""
 
     conversation_id: str = Field(..., description="The ID of the conversation.")
-    products: List[str] = Field(..., description="List of all product names or product numbers mentioned in the conversation.")
+    products: List[str] = Field(..., description="List of all product names or product numbers mentioned in the conversation. If you are certain a metioned product is not a product of the company, e.g. 'a customers own mobile phone', 'customers own car', do not add it to this list")
     store_location: Optional[str] = Field(None, description="The specific store location or address mentioned, if any.")
     product_category: Optional[str] = Field(None, description="The general category of the product being discussed (e.g., 'storage', 'kitchen', 'lighting').")
     service_rendered: Optional[str] = Field(None, description="Any service that was provided or discussed (e.g., 'refund', 'delivery', 'assembly').")
@@ -62,7 +62,7 @@ def prompt(transcript: str, metadata: dict) -> str:
         JSON Schema:
         {{
             "conversation_id": "conversation_id",
-            "products": ["list of product names or numbers"],
+            "products": ["list of product names or numbers"] (If you are certain a metioned product is not a product of the company, e.g. 'a customers own mobile phone', 'customers own car', do not add it to this list).",
             "store_location": "store address or location",
             "product_category": "category of the product",
             "service_rendered": "service provided or discussed",
