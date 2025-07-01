@@ -93,9 +93,10 @@ def format_conversation(json_file_path: str) -> tuple[List[dict], List[dict]]:
     all_extracted_info = []
     failed_extractions = []
 
-    for i, message in enumerate(transformed_json_data):
+    for message in transformed_json_data:
         transcript = message.get("transcript")
         metadata = message.get("metadata")
+        conversation_id = message.get("metadata", {}).get("conversation_id")
 
         try:
             response_text = get_gemini_response(prompt(transcript, metadata))
@@ -110,7 +111,7 @@ def format_conversation(json_file_path: str) -> tuple[List[dict], List[dict]]:
 
         except (json.JSONDecodeError, TypeError) as e:
             error_info = {
-                "conversation_index": i,
+                "conversation_id": conversation_id,
                 "original_transcript": transcript,
                 "original_metadata": metadata,
                 "llm_response": response_text,
@@ -118,11 +119,11 @@ def format_conversation(json_file_path: str) -> tuple[List[dict], List[dict]]:
                 "error_message": str(e)
             }
             failed_extractions.append(error_info)
-            print(f"Could not parse LLM response for conversation {i}. Raw response was: {response_text}")
+            print(f"Could not parse LLM response for conversation {conversation_id}. Raw response was: {response_text}")
             continue
         except Exception as e:
             error_info = {
-                "conversation_index": i,
+                "conversation_id": conversation_id,
                 "original_transcript": transcript,
                 "original_metadata": metadata,
                 "llm_response": response_text if 'response_text' in locals() else "N/A",
