@@ -27,7 +27,6 @@ def chunking_data(json_file_path: str):
             if 'customer:' in chunk:
                 customer_response_count += 1
 
-            
             if customer_response_count == 4:
                 # 1) Combine the collected lines into a single text block
                 final_chunk_text = "\n".join(chunks_list)
@@ -54,3 +53,6 @@ def chunking_data(json_file_path: str):
         print(json.dumps(final_structured_chunks, indent=2))
 
 chunking_data(json_file_path)
+
+
+#def embedding_data()
