@@ -1,118 +1,124 @@
-import asyncio
-import time
-from llama_index.core.agent.workflow import AgentWorkflow
-from llama_index.llms.ollama import Ollama
-from llama_index.core.workflow import Context
-from llama_index.core import VectorStoreIndex, SimpleDirectoryReader, Settings, StorageContext, load_index_from_storage
-from llama_index.embeddings.huggingface import HuggingFaceEmbedding
-import os
+import json
+from typing import List, Optional
+from pydantic import BaseModel, Field
+from gemini_model import get_gemini_response
 
 
-
-Settings.embed_model = HuggingFaceEmbedding(model_name="Qwen/Qwen3-Embedding-4B")
-Settings.llm = Ollama(
-        model="llama3.2",
-        request_timeout=360.0,
-        context_window=8000
-    )
+# --- Configuration (path)---
+json_file_path = "src/data/llamaindex_embedding_data/transformed_oscar_data.json"
+output_path = "src/data/test.json"
 
 
-# Optimize: Load from storage if exists, otherwise create and persist
-if os.path.exists("storage"):
-    print("Loading existing index from storage...")
-    storage_context = StorageContext.from_defaults(persist_dir="storage")
-    index = load_index_from_storage(
-        storage_context,
-        embed_model=Settings.embed_model
-    )
-    print("Index loaded successfully!")
-else:
-    print("Creating new index from documents...")
-    documents = SimpleDirectoryReader("src/data/").load_data()
-    index = VectorStoreIndex.from_documents(
-        documents,
-        embed_model=Settings.embed_model
-    )
-    index.storage_context.persist("storage")
-    print("Index created and saved to storage!")
+# --- Functions ---
+def load_json_data(file_path: str):
+    """
+    Loads data from the JSON file.
+    """
+    print("Loading data...")
+    try:
+        with open(file_path, 'r', encoding='utf-8') as f:
+            raw_data = json.load(f)
+            return raw_data
 
-query_engine = index.as_query_engine(
-    llm=Settings.llm,
-    similarity_top_k=3,
-    streaming=True
-    )
-
-
-
-async def search_documents(query: str) -> str:
-    """Useful for answering questions about the car company Aether Motors."""
-    print(f"\n Starting document search for: '{query}'")
-    
-    # Time the embedding + search process
-    start_time = time.time()
-    response = await query_engine.aquery(query)
-    search_time = time.time() - start_time
-    
-    print(f"Document search took: {search_time:.2f} seconds")
-    return str(response)
-
-
-# Create an AgentWorkflow (supports streaming!)
-agent = AgentWorkflow.from_tools_or_functions(
-    [search_documents],
-    llm=Ollama(
-        model="llama3.2",
-        request_timeout=360.0,
-        context_window=8000
-    ),
-    system_prompt="You are a helpful assistant that can search through documents to answer questions about Aether Motors.",
-    timeout=120,
-    verbose=False
-)
-
-
-async def main():
-    print("Chat with the agent! Type 'quit' or 'exit' to stop.")
-
-    while True:
-        prompt = input("\nPrompt: ").strip()
+    except FileNotFoundError:
+        # Raise a proper Exception object, not a string
+        raise Exception(f"Error: The file at {file_path} was not found.")
         
-        if prompt.lower() in ['quit', 'exit', 'q']:
-            print("Goodbye!")
-            break
-            
-        if not prompt:
-            continue
-            
+    except json.JSONDecodeError:
+        # Raise a proper Exception object, not a string
+        raise Exception(f"Error: The file at {file_path} is not a valid JSON file.")
+
+
+class ConversationInfo(BaseModel):
+    """Data model for extracted information from a conversation."""
+
+    conversation_id: str = Field(..., description="The ID of the conversation.")
+    products: List[str] = Field(..., description="List of all product names or product numbers mentioned in the conversation.")
+    store_location: Optional[str] = Field(None, description="The specific store location or address mentioned, if any.")
+    product_category: Optional[str] = Field(None, description="The general category of the product being discussed (e.g., 'storage', 'kitchen', 'lighting').")
+    service_rendered: Optional[str] = Field(None, description="Any service that was provided or discussed (e.g., 'refund', 'delivery', 'assembly').")
+    customer_satisfaction: str = Field(..., description="Overall customer satisfaction level. Must be one of: 'Positive', 'Negative', 'Neutral'.")
+    case_or_order_number: Optional[str] = Field(None, description="Any mentioned order or case numbers.")
+    
+
+
+def prompt(transcript: str, metadata: dict) -> str:
+    query = f"""
+        You are an expert data analyst. Your task is to carefully read the following customer support conversation
+        and extract specific pieces of information. 
+
+        Conversation Transcript:
+        ---
+        {transcript}
+        ---
+        {metadata}
+        ---
+
+        Based on the conversation, provide the requested information in a valid JSON format,
+        adhering to the following schema. Do not include any extra text or explanations outside of the JSON object.
+        Never lie or make up information, always base your answers on the information from the documents.
+
+        JSON Schema:
+        {{
+            "conversation_id": "conversation_id"
+            "products": ["list of product names or numbers"],
+            "store_location": "store address or location",
+            "product_category": "category of the product",
+            "service_rendered": "service provided or discussed",
+            "customer_satisfaction": "Positive, Negative, or Neutral",
+            "case_or_order_number": "order or case number",
+        }}
+    """
+    return query
+
+
+def save_json_file(extracted_info: List[dict], output_path: str):
+    try:
+        with open(output_path, 'w', encoding='utf-8') as f:
+            json.dump(extracted_info, f, indent=4)
+        print(f"Successfully saved extracted info to {output_path}")
+    except IOError as e:
+        print(f"Error writing to {output_path}: {e}")
+
+
+def format_conversation(json_file_path: str) -> List[dict]:
+    """Processes all conversations and extracts information from each."""
+
+    transformed_json_data = load_json_data(json_file_path)
+    all_extracted_info = []
+
+    for message in transformed_json_data:
+        transcript = message.get("transcript")
+        metadata = message.get("metadata")
+
         try:
-            print(f"\n Starting agent processing...")
-            total_start = time.time()
+            response_text = get_gemini_response(prompt(transcript, metadata))
+            # The response from the LLM should be a JSON string.
+            # We clean it up and parse it.
+            json_response = json.loads(response_text.strip().replace("```json", "").replace("```", "").strip())
             
-            handler = agent.run(user_msg=prompt)
-            
-            print("Agent: ", end="", flush=True)
-            
-            # Time the LLM response generation
-            llm_start = time.time()
-            
-            # Stream the response
-            #async for event in handler.stream_events():
-                #if hasattr(event, 'delta') and event.delta:
-                    #print(event.delta, end="", flush=True)
-            
-            # Get final result
-            result = await handler
-            llm_time = time.time() - llm_start
-            total_time = time.time() - total_start
-            
-            print(f"\nLLM response took: {llm_time:.2f} seconds")
-            print(f"Total processing time: {total_time:.2f} seconds")
-            print(f"Response: {result.response.content}")
-            
+            # Validate the data using the Pydantic model
+            extracted_info = ConversationInfo(**json_response)
+            all_extracted_info.append(extracted_info.dict())
+            print(f"Successfully processed conversation: {extracted_info.conversation_id}")
+
+        except (json.JSONDecodeError, TypeError):
+            print(f"Could not parse LLM response for a conversation. Raw response was: {response_text}")
+            continue
         except Exception as e:
-            print(f"Error: {e}")
-            print("Please try again.")
+            print(f"An unexpected error occurred for a conversation: {e}")
+            continue
+    
+    return all_extracted_info
 
 
 if __name__ == "__main__":
-    asyncio.run(main())
+    # Process the conversations and extract information
+    extracted_data = format_conversation(json_file_path)
+    
+    # Save the extracted information to test.json
+    if extracted_data:
+        save_json_file(extracted_data, output_path)
+        print(f"Extracted and saved information for {len(extracted_data)} conversations.")
+    else:
+        print("No data was extracted.")
