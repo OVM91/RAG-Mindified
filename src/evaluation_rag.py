@@ -114,10 +114,24 @@ for i, (facit_conv, test_conv) in enumerate(zip(facit_data, new_data)):
     else:
         print("No evaluation results to save.")
 
-load_json_data(output_path)
-for conversation in output_path
-#evaluation_df = pd.DataFrame(data)
 
+def sum_conversation_scores(output_path: str):
+
+    final_score = 0
+    evaluation_data = load_json_data(output_path)
+
+    for conversation in evaluation_data:
+        conv_score = conversation.get('total_score')
+        final_score += conv_score
+    
+    accuracy = final_score/84
+    print(f'Final score: {final_score}/84\nAccuracy: {round(accuracy, 4)}')
+        
+
+sum_conversation_scores(output_path)
+
+
+#evaluation_df = pd.DataFrame(data)
 # Save as excel file
 #with pd.ExcelWriter('eval report.xlsx', engine='xlsxwriter') as writer:
 #    evaluation_df.to_excel(writer, sheet_name='Page_1', index=False)
