@@ -5,12 +5,12 @@
 #import sys
 import pandas as pd
 from typing import List
-from gemini_model import get_gemini_response
+from llm_models import get_gemini_response
 from main import load_json_data, save_json_file
 import json
 
 
-
+# Logging
 """nest_asyncio.apply()
 
 # Set up the root logger
@@ -34,9 +34,9 @@ logging.getLogger().addHandler(logging.StreamHandler(stream=sys.stdout))"""
 
 
 # --- Configuration (path)---
-facit_data_json = "src/data/facit.json"
-new_data_json = "src/data/test_data.json"
-output_path = "src/data/evaluation_results.json"
+facit_data_json = "src/data/evaluation/facit.json"
+new_data_json = "src/data/llm_output_data/test_data.json"
+output_path = "src/data/evaluation/evaluation_results.json"
 
 
 # --- Functions ---
@@ -114,7 +114,8 @@ for i, (facit_conv, test_conv) in enumerate(zip(facit_data, new_data)):
     else:
         print("No evaluation results to save.")
 
-
+load_json_data(output_path)
+for conversation in output_path
 #evaluation_df = pd.DataFrame(data)
 
 # Save as excel file
