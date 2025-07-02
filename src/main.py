@@ -1,7 +1,7 @@
 import json
 from typing import List, Optional
 from pydantic import BaseModel, Field
-from gemini_model import get_gemini_response
+from llm_models import get_gemini_response
 
 
 # --- Configuration (path)---
@@ -34,14 +34,13 @@ class ConversationInfo(BaseModel):
     """Data model for extracted information from a conversation."""
 
     conversation_id: str = Field(..., description="The ID of the conversation.")
-    products: List[str] = Field(..., description="List of all product names or product numbers mentioned in the conversation. If you are certain a metioned product is not a product of the company, e.g. 'a customers own mobile phone', 'customers own car', do not add it to this list")
+    products: List[str] = Field(..., description="List of all product names or product numbers mentioned in the conversation. If the LLM is certain a metioned product is a customers own belonging its not added to this list")
     store_location: Optional[str] = Field(None, description="The specific store location or address mentioned, if any.")
     product_category: Optional[str] = Field(None, description="The general category of the product being discussed (e.g., 'storage', 'kitchen', 'lighting').")
     service_rendered: Optional[str] = Field(None, description="Any service that was provided or discussed (e.g., 'refund', 'delivery', 'assembly').")
     customer_satisfaction: str = Field(..., description="Overall customer satisfaction level. Must be one of: 'Positive', 'Negative', 'Neutral'.")
     case_or_order_number: Optional[str] = Field(None, description="Any mentioned order or case numbers.")
     
-
 
 def prompt(transcript: str, metadata: dict) -> str:
     query = f"""
@@ -65,9 +64,9 @@ def prompt(transcript: str, metadata: dict) -> str:
             "products": ["list of product names or numbers"] (If you are certain a metioned product is not a product of the company, e.g. 'a customers own mobile phone', 'customers own car', do not add it to this list).",
             "store_location": "store address or location",
             "product_category": "category of the product",
-            "service_rendered": "service provided or discussed",
-            "customer_satisfaction": "Positive, Negative, or Neutral",
-            "case_or_order_number": "order or case number",
+            "service_rendered": "any service that was provided or discussed (e.g., 'refund', 'delivery', 'assembly'",
+            "customer_satisfaction": "overall customer satisfaction level. Must be one of: 'Positive', 'Negative', 'Neutral'.",
+            "case_or_order_number": "any mentioned order or case number",
         }}
     """
     return query
