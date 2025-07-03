@@ -55,7 +55,17 @@ def evaluate(test_conv: dict, facit_conv: dict) -> str:
 
 
 def eval_main(facit_data_json: str, new_data_json: str) -> None:
+    """
+    Main evaluation function that compares LLM responses against facit/answer sheet.
     
+    Loads reference (facit) and test data, evaluates each conversation pair using
+    an LLM evaluator, and saves results incrementally. Handles JSON parsing errors
+    gracefully by saving error information for debugging.
+    
+    Args:
+        facit_data_json (str): Path to JSON file containing reference/ground truth data.
+        new_data_json (str): Path to JSON file containing LLM-generated data.
+    """
     facit_data = load_json_data(facit_data_json)
     new_data = load_json_data(new_data_json)
 
@@ -98,7 +108,15 @@ def eval_main(facit_data_json: str, new_data_json: str) -> None:
 
 
 def sum_conversation_scores(output_path: str) -> None:
-
+    """
+    Calculates and prints the total score and accuracy from evaluation results.
+    Loads evaluation data from a JSON file, sums up all conversation scores,
+    and calculates the accuracy as a percentage of the maximum possible score (84).
+    
+    Args:
+        output_path (str): Path to the JSON file containing evaluation results.
+                          Each conversation should have a 'total_score' field.
+    """
     final_score = 0
     evaluation_data = load_json_data(output_path)
 
