@@ -3,7 +3,7 @@ from dotenv import load_dotenv
 import google.generativeai as genai
 
 
-def get_gemini_response(prompt: str):
+def get_gemini_response(prompt: str) -> str:
     """
     Sends a prompt to the Gemini model and returns the response.
     """
@@ -19,7 +19,7 @@ def get_gemini_response(prompt: str):
     return response.text
 
 
-def gemini_1_5_flash_8b_reponse(prompt: str):
+def gemini_1_5_flash_8b_reponse(prompt: str) -> str:
     """
     Sends a prompt to the Gemini model and returns the response.
     """
