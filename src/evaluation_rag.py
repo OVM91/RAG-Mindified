@@ -37,7 +37,7 @@ logging.getLogger().addHandler(logging.StreamHandler(stream=sys.stdout))"""
 # --- Configuration (path)---
 facit_data_json = "src/data/evaluation/facit.json"
 new_data_json = "src/data/llm_output_data/test_data.json"
-output_path = "src/data/evaluation/evaluation_results.json"
+output_path = "src/data/evaluation/gemini-2.5-flash_eval_results.json"
 
 
 # --- Functions ---
@@ -45,8 +45,7 @@ def evaluate(test_conv: dict, facit_conv: dict) -> str:
     query = f"""
         You are an expert data analyst. Your task is to carefully read and compare the answers from the new data set (response from LLM)
         with the answers in the Answer sheet. The correct answers are found in the 'Answer sheet'.
-        **IMPORTANT** For the categories 'product_category' and 'service_rendered' The llm response doesnt have to match 100 %, 
-        word for word with the Answer sheet, the semantic meaning is the most important.
+        **IMPORTANT** The llm response doesnt have to match 100 %, word for word with the Answer sheet, the semantic meaning is the most important.
         (e.g 'Order cancellation request, inquiry about order status/shipping, and discussion of refund process for delayed order.' and
         'Order cancellation inquiry, Order status inquiry, Refund process explanation' are very similar therefore both answers are correct.
 
@@ -65,7 +64,7 @@ def evaluate(test_conv: dict, facit_conv: dict) -> str:
         {{
             "conversation_id": "0",
             "conversation_id_status": "CORRECT",
-            "products": ["chair", "lamp"],
+            "products": ["Chair", "Lamp"],
             "products_status": "WRONG", 
             "store_location": "Silicon Valley",
             "store_location_status": "WRONG",
@@ -92,7 +91,7 @@ for i, (facit_conv, test_conv) in enumerate(zip(facit_data, new_data)):
     llm_eval = evaluate(test_conv, facit_conv)
     print('Adding slight delay to manage the llm_quota (RPM)')
     time.sleep(2)
-    
+
     gemini_output = get_gemini_response(llm_eval)
     print(f"Evaluated conversation {i}: {gemini_output}")
 
