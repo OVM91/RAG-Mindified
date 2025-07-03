@@ -1,15 +1,13 @@
-
 from typing import List
 from llm_models import get_gemini_response
 from main import load_json_data, save_json_file
 import json
 import time
 
-
 # --- Configuration (path)---
 facit_data_json = "src/data/evaluation/facit.json"
-new_data_json = "src/data/llm_output_data/test_data_gemini-2.5-flash_eval_results.json"
-output_path = "src/data/evaluation/gemini-2.5-flash_eval_results.json"
+new_data_json = "src/data/llm_output_data/test_data_gemini_1.5_flash.json"
+output_path = "src/data/evaluation/test_data_gemini_1.5_flashv2.json"
 
 
 # --- Functions ---
@@ -21,10 +19,13 @@ def evaluate(test_conv: dict, facit_conv: dict) -> str:
         (e.g 'Order cancellation request, inquiry about order status/shipping, and discussion of refund process for delayed order.' and
         'Order cancellation inquiry, Order status inquiry, Refund process explanation' are very similar therefore both answers are correct.
 
-        Correct Answer (Answer sheet):
+        **Partial Matching for Slashed Answers:** If a field in the 'Answer sheet' contains multiple answers separated by a slash ('/'), 
+        the LLM's response is considered CORRECT if it matches at least ONE of those answers.
+
+        Correct Answer (Answer sheet/Grounded truth):
         {facit_conv}
         ---
-        Answer from the LLM:
+        LLM response (output):
         {test_conv}
         ---
 
@@ -124,7 +125,8 @@ def sum_conversation_scores(output_path: str) -> None:
         conv_score = conversation.get('total_score')
         final_score += conv_score
     
-    accuracy = final_score/84
+    max_possible_score = 84
+    accuracy = final_score / max_possible_score
     print(f'Final score: {final_score}/84\nAccuracy: {round(accuracy, 4)}')
         
 
