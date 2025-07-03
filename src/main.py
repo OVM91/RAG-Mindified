@@ -72,7 +72,8 @@ def prompt(transcript: str, metadata: dict) -> str:
     return query
 
 
-def save_json_file(extracted_info: List[dict], output_path: str):
+def save_json_file(extracted_info: List[dict], output_path: str) -> None:
+    """Saves json file"""
     try:
         with open(output_path, 'w', encoding='utf-8') as f:
             json.dump(extracted_info, f, indent=4)
@@ -131,7 +132,7 @@ def format_conversation(json_file_path: str) -> tuple[List[dict], List[dict]]:
                 "error_message": str(e)
             }
             failed_extractions.append(error_info)
-            print(f"An unexpected error occurred for conversation {i}: {e}")
+            print(f"An unexpected error occurred for conversation {conversation_id}: {e}")
             continue
     
     return all_extracted_info, failed_extractions
