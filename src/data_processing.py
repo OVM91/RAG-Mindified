@@ -8,7 +8,26 @@ json_file_path = "src/data/raw_oscar_data.json"
 
 # --- Functions ---
 def parse_json_data(raw_json_data: str) -> json:
-
+    """
+    Processes raw conversation data by combining all the different messages of the same conversation_id (every msg also has its own metadata) 
+    into one transcript and extracting the relevant metadata.
+    
+    Takes raw JSON conversation data and processes each conversation by:
+    - Combining all messages into a single transcript string
+    - Removing duplicate system messages to clean the data
+    - Counting occurrences of specific wait messages for analytics
+    - Extracting conversation metadata for further analysis
+    
+    Args:
+        raw_json_data (str): Raw conversation data containing messages and metadata.
+                            Expected to be a list of conversation dictionaries.
+    
+    Returns:
+        json: List of processed conversations, each containing:
+              - conversation_id: Unique identifier for the conversation
+              - transcript: Combined text of all messages formatted as "user_type: message"
+              - metadata: Dictionary with conversation details and duplicate message counts
+    """
     processed_conversations = []
     for conv in raw_json_data:
         # Combine messages into a single transcript and remove system msg duplicates, sorry - this should be its own func for better readability
