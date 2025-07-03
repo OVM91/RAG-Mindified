@@ -1,37 +1,9 @@
-#import os 
-#import nest_asyncio
-#import asyncio
-#import logging
-#import sys
-import pandas as pd
+
 from typing import List
 from llm_models import get_gemini_response
 from main import load_json_data, save_json_file
 import json
 import time
-
-
-# Logging
-"""nest_asyncio.apply()
-
-# Set up the root logger
-logger = logging.getLogger()
-logger.setLevel(logging.INFO)  # Set logger level to INFO
-
-# Clear out any existing handlers
-logger.handlers = []
-
-# Set up the StreamHandler to output to sys.stdout (Colab's output)
-handler = logging.StreamHandler(sys.stdout)
-handler.setLevel(logging.INFO)  # Set handler level to INFO
-
-# Add the handler to the logger
-logger.addHandler(handler)
-
-
-logging.basicConfig(stream=sys.stdout, level=logging.INFO)
-logging.getLogger().addHandler(logging.StreamHandler(stream=sys.stdout))"""
-
 
 
 # --- Configuration (path)---
@@ -81,48 +53,51 @@ def evaluate(test_conv: dict, facit_conv: dict) -> str:
     """
     return query
 
-# Load the data
-facit_data = load_json_data(facit_data_json)
-new_data = load_json_data(new_data_json)
 
-all_extracted_conv_score = []
-
-for i, (facit_conv, test_conv) in enumerate(zip(facit_data, new_data)):
-    llm_eval = evaluate(test_conv, facit_conv)
-    print('Adding slight delay to manage the llm_quota (RPM)')
-    time.sleep(2)
-
-    gemini_output = get_gemini_response(llm_eval)
-    print(f"Evaluated conversation {i}: {gemini_output}")
-
-    cleaned_json_response = gemini_output.strip().replace("```json", "").replace("```", "").strip()
+def eval_main(facit_data_json: str, new_data_json: str) -> None:
     
-    try:
-        # Parse the string into an actual JSON object
-        json_response = json.loads(cleaned_json_response)
-        all_extracted_conv_score.append(json_response)
-        print(f"Successfully parsed JSON for conversation {i}")
+    facit_data = load_json_data(facit_data_json)
+    new_data = load_json_data(new_data_json)
 
-    except json.JSONDecodeError as e:
-        print(f"Failed to parse JSON for conversation {i}: {e}")
-        print(f"Raw response: {cleaned_json_response}")
-        # Save the failed case as a string for debugging
-        all_extracted_conv_score.append({
-            "error": "JSON_PARSE_ERROR",
-            "conversation_index": i,
-            "raw_response": cleaned_json_response,
-            "error_message": str(e)
-        })
+    all_extracted_conv_score = []
 
-    # Save results for each iteration
-    if all_extracted_conv_score:
-        save_json_file(all_extracted_conv_score, output_path)
-        print(f"Saved evaluation results")
-    else:
-        print("No evaluation results to save.")
+    # Comparing facit with the new data (new data is the output of the llm)
+    for i, (facit_conv, test_conv) in enumerate(zip(facit_data, new_data)):
+        llm_eval = evaluate(test_conv, facit_conv)
+        print('Adding slight delay to manage the llm_quota (RPM)')
+        time.sleep(2)
+
+        llm_output = get_gemini_response(llm_eval)
+        print(f"Evaluated conversation {i}: {llm_output}")
+
+        try:
+            # Cleaning the json output of the llm and parse it
+            cleaned_json_response = llm_output.strip().replace("```json", "").replace("```", "").strip()
+            json_response = json.loads(cleaned_json_response)
+
+            all_extracted_conv_score.append(json_response)
+            print(f"Successfully parsed JSON for conversation {i}")
+
+        except json.JSONDecodeError as e:
+            print(f"Failed to parse JSON for conversation {i}: {e}")
+            print(f"Raw response: {cleaned_json_response}")
+            # Save the failed case as a string for debugging
+            all_extracted_conv_score.append({
+                "error": "JSON_PARSE_ERROR",
+                "conversation_index": i,
+                "raw_response": cleaned_json_response,
+                "error_message": str(e)
+            })
+
+        # Save results for each iteration in case of unexpected error, so I can have a quick peek at what the data looks like
+        if all_extracted_conv_score:
+            save_json_file(all_extracted_conv_score, output_path)
+            print(f"Saved evaluation results")
+        else:
+            print("No evaluation results to save.")
 
 
-def sum_conversation_scores(output_path: str):
+def sum_conversation_scores(output_path: str) -> None:
 
     final_score = 0
     evaluation_data = load_json_data(output_path)
@@ -135,10 +110,7 @@ def sum_conversation_scores(output_path: str):
     print(f'Final score: {final_score}/84\nAccuracy: {round(accuracy, 4)}')
         
 
-sum_conversation_scores(output_path)
+if __name__ == "__main__":
+    eval_main(facit_data_json, new_data_json)
+    sum_conversation_scores(output_path)
 
-
-#evaluation_df = pd.DataFrame(data)
-# Save as excel file
-#with pd.ExcelWriter('eval report.xlsx', engine='xlsxwriter') as writer:
-#    evaluation_df.to_excel(writer, sheet_name='Page_1', index=False)
