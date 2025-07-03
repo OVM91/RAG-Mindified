@@ -1,34 +1,17 @@
 import json
 from ordered_set import OrderedSet
+from main import load_json_data
 
 # --- Configuration (path)---
 json_file_path = "src/data/raw_oscar_data.json"
 
 
 # --- Functions ---
-def load_json_data(file_path: str):
-    """Loads data from the JSON file."""
-
-    print("Loading data...")
-    try:
-        with open(file_path, 'r', encoding='utf-8') as f:
-            raw_data = json.load(f)
-            return raw_data
-
-    except FileNotFoundError:
-        # Raise a proper Exception object, not a string
-        raise Exception(f"Error: The file at {file_path} was not found.")
-        
-    except json.JSONDecodeError:
-        # Raise a proper Exception object, not a string
-        raise Exception(f"Error: The file at {file_path} is not a valid JSON file.")
-
-
 def parse_json_data(raw_json_data: str) -> json:
 
     processed_conversations = []
     for conv in raw_json_data:
-        # Combine messages into a single transcript and remove system msg duplicates
+        # Combine messages into a single transcript and remove system msg duplicates, sorry - this should be its own func for better readability
         transcript = ""
         seen_system_messages = OrderedSet()
         wait_message_duplicates_count = 0
@@ -80,11 +63,8 @@ def main(file_path: str):
     if not conversations:
         print("No conversations to process. Exiting.")
         return
-        
-    # In the next steps, we will add chunking and indexing here.
-    print("\n--- Data Processing Complete ---")
     
-    # let's just inspect the first processed conversation
+    # let's inspect the first processed conversation, making sure its OK
     if conversations:
         print("\n--- Test: first processed conversation ---")
         print(len(conversations))
