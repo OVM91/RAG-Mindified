@@ -8,7 +8,7 @@ import time
 
 # --- Configuration (path)---
 facit_data_json = "src/data/evaluation/facit.json"
-new_data_json = "src/data/llm_output_data/test_data.json"
+new_data_json = "src/data/llm_output_data/test_data_gemini-2.5-flash_eval_results.json"
 output_path = "src/data/evaluation/gemini-2.5-flash_eval_results.json"
 
 
