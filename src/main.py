@@ -1,13 +1,13 @@
 import json
 from typing import List, Optional
 from pydantic import BaseModel, Field
-from llm_models import get_gemini_response
+from llm_models import get_gemini_response, gemini_1_5_flash_8b_reponse
 
 
 # --- Configuration (path)---
-json_file_path = "src/data/llamaindex_embedding_data/transformed_oscar_data.json"
-output_path = "src/data/test_data.json"
-failed_validation_output_path = "src/data/failed_conversations.json"
+json_file_path = "src/data/transformed_oscar_data.json"
+output_path = "src/data/test_data_gemini_2.5_flash.json"
+failed_validation_output_path = "src/data/llm_output_data/failed_conversations.json"
 
 
 # --- Functions ---
@@ -98,14 +98,15 @@ def format_conversation(json_file_path: str) -> tuple[List[dict], List[dict]]:
         conversation_id = message.get("metadata", {}).get("conversation_id")
 
         try:
-            response_text = get_gemini_response(prompt(transcript, metadata))
-            # The response from the LLM should be a JSON string.
-            # We clean it up and parse it.
-            json_response = json.loads(response_text.strip().replace("```json", "").replace("```", "").strip())
+            response_text = get_gemini_response()(prompt(transcript, metadata))
+            
+            # Cleaning the json output from llm and parse it.
+            cleaned_json_response = response_text.strip().replace("```json", "").replace("```", "").strip()
+            json_response = json.loads(cleaned_json_response)
             
             # Validate the data using the Pydantic model
             extracted_info = ConversationInfo(**json_response)
-            all_extracted_info.append(extracted_info.dict())
+            all_extracted_info.append(json_response)
             print(f"Successfully processed conversation: {extracted_info.conversation_id}")
 
         except (json.JSONDecodeError, TypeError) as e:
@@ -140,7 +141,7 @@ if __name__ == "__main__":
     # Process the conversations and extract information
     extracted_data, failed_data = format_conversation(json_file_path)
     
-    # Save the extracted information to test.json
+    # Save the extracted information
     if extracted_data:
         save_json_file(extracted_data, output_path)
         print(f"Extracted and saved information for {len(extracted_data)} conversations.")
