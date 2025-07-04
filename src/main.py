@@ -99,7 +99,7 @@ def format_conversation(json_file_path: str) -> tuple[List[dict], List[dict]]:
         conversation_id = message.get("metadata", {}).get("conversation_id")
 
         try:
-            response_text = get_gemini_response()(prompt(transcript, metadata))
+            response_text = get_gemini_response(prompt(transcript, metadata))
             
             # Cleaning the json output from llm and parse it.
             cleaned_json_response = response_text.strip().replace("```json", "").replace("```", "").strip()
