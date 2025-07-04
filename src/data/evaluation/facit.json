@@ -1,0 +1,125 @@
+[
+    {
+        "conversation_id": "0",
+        "products": [
+            "SOCKERBIT Storage box with Lid"
+        ],
+        "store_location": "Menlo",
+        "product_category": "Storage",
+        "service_rendered": "Refund for damaged item",
+        "customer_satisfaction": "Positive",
+        "case_or_order_number": "71235234 or 471212321"
+    },
+    {
+        "conversation_id": "1",
+        "products": [],
+        "store_location": null,
+        "product_category": null,
+        "service_rendered": "Order cancellation, Order status inquiry, Refund process explanation/Refund",
+        "customer_satisfaction": "Neutral",
+        "case_or_order_number": "479882742"
+    },
+    {
+        "conversation_id": "2",
+        "products": [],
+        "store_location": null,
+        "product_category": null,
+        "service_rendered": "Assisted with order placement and payment troubleshooting for an online order.",
+        "customer_satisfaction": "Neutral",
+        "case_or_order_number": "471. 515. 124"
+    },
+    {
+        "conversation_id": "3",
+        "products": [],
+        "store_location": null,
+        "product_category": null,
+        "service_rendered": "Customer disconnected during que/No answer/Customer support initiation",
+        "customer_satisfaction": "Neutral",
+        "case_or_order_number": null
+    },
+    {
+        "conversation_id": "4",
+        "products": [
+            "funnel",
+            "805.219.30",
+            "desk organizer",
+            "603.954.52"
+        ],
+        "store_location": null,
+        "product_category": "Home Goods",
+        "service_rendered": "Refund for damaged delivery items",
+        "customer_satisfaction": "Positive",
+        "case_or_order_number": "473-141-5161"
+    },
+    {
+        "conversation_id": "5",
+        "products": [
+            "BILLY bookcase"
+        ],
+        "store_location": "Schaumburg",
+        "product_category": "Furniture",
+        "service_rendered": "Missing part replacement",
+        "customer_satisfaction": "Positive",
+        "case_or_order_number": "#CH987654"
+    },
+    {
+        "conversation_id": "6",
+        "products": [
+            "chair"
+        ],
+        "store_location": null,
+        "product_category": "Furniture",
+        "service_rendered": "Product Replacement",
+        "customer_satisfaction": "Positive",
+        "case_or_order_number": "555123987"
+    },
+    {
+        "conversation_id": "7",
+        "products": [],
+        "store_location": null,
+        "product_category": null,
+        "service_rendered": "Shipping address update",
+        "customer_satisfaction": "Positive",
+        "case_or_order_number": "987654321"
+    },
+    {
+        "conversation_id": "8",
+        "products": [],
+        "store_location": null,
+        "product_category": null,
+        "service_rendered": "Order cancellation and refund initiation",
+        "customer_satisfaction": "Positive",
+        "case_or_order_number": "1122334455"
+    },
+    {
+        "conversation_id": "9",
+        "products": [],
+        "store_location": null,
+        "product_category": null,
+        "service_rendered": "Return processing/Returning item",
+        "customer_satisfaction": "Positive",
+        "case_or_order_number": "246801357"
+    },
+    {
+        "conversation_id": "10",
+        "products": [
+            "desk lamp",
+            "rug",
+            "plant stand"
+        ],
+        "store_location": null,
+        "product_category": "Home Goods",
+        "service_rendered": "Promo code application assistance",
+        "customer_satisfaction": "Positive",
+        "case_or_order_number": null
+    },
+    {
+        "conversation_id": "11",
+        "products": [],
+        "store_location": "IKEA Brooklyn",
+        "product_category": null,
+        "service_rendered": "Provided lost and found contact information",
+        "customer_satisfaction": "Positive",
+        "case_or_order_number": null
+    }
+]
