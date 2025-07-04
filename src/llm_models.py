@@ -1,6 +1,5 @@
 import os
 from dotenv import load_dotenv
-#import google.generativeai as genai
 from google import genai
 
 
@@ -23,7 +22,6 @@ def get_gemini_response(prompt: str) -> str:
         return "Error: No response text generated"
     
     return response.text
-    
 
 
 def gemini_1_5_flash_8b_reponse(prompt: str) -> str:
