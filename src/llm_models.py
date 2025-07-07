@@ -45,7 +45,7 @@ def gemini_1_5_flash_8b_reponse(prompt: str) -> str:
     return response.text
 
 
-def gemini_2_5_flash_lite_preview_reponse(prompt: str) -> str:
+def gemini_2_5_flash_lite_preview_reponse(prompt:str ) -> str:
     """
     Sends a prompt to the Gemini model and returns the response.
     """
