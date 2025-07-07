@@ -8,7 +8,7 @@ from llm_models import gemini_2_5_flash_lite_preview_reponse
 load_dotenv()
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
-output_file = "src/data/synthetic_transcript_data.jsonl"
+output_file = "src/data/synthetic_data.jsonl"
 
 
 # --- Example (Based on provided data) ---
