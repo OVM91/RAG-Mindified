@@ -1,4 +1,4 @@
-# RAG-Mindified
+# Project-Mindified
 
 Step-By-Step:
 1) data_processing.py -
